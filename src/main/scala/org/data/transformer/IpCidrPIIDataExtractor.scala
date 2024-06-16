@@ -9,8 +9,8 @@ object IpCidrPIIDataExtractor {
 
     val spark = SparkSession
       .builder()
-      .appName("SparkDataFrameLatencyProcessor")
-      .master("local[*]") // Comment out if running in local standalone cluster
+      .appName("IpCidrPIIDataExtractor")
+      //.master("local[*]") // Comment out if running in local standalone cluster
       .getOrCreate()
 
     val sc = spark.sparkContext

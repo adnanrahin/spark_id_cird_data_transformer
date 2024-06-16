@@ -9,7 +9,7 @@ PARTITIONS="2"
 $SPARK_HOME/bin/spark-submit \
     --master spark://dev-server01:7077 \
     --deploy-mode client \
-    --class org.data.transformer.IpCidrPIIDataExtractor \
+    --class org.data.transformer.SparkIpCidrPIIDataExtractor \
     --name SparkIpCidrPIIDataExtractor \
     --driver-memory 2G \
     --driver-cores 2 \

@@ -4,11 +4,11 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.storage.StorageLevel
-import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.data.transformer.writer.DataFileWriterLocal
-
 import scala.reflect.runtime.universe._
 import scala.reflect.runtime.{currentMirror => cm}
+import scala.util.{Try, Success, Failure}
+
 
 class DataExtractor(personDomainDf: DataFrame) {
 
@@ -95,10 +95,17 @@ class DataExtractor(personDomainDf: DataFrame) {
     }
 
     methods.foreach { method =>
-      val result = instanceMirror.reflectMethod(method).apply().asInstanceOf[DataFrame]
-      val directoryName = method.name.toString
-      DataFileWriterLocal.dataWriterParquet(result, dataPath, directoryName)
+      val methodName = method.name.toString
+      Try {
+        val result = instanceMirror.reflectMethod(method).apply().asInstanceOf[DataFrame]
+        DataFileWriterLocal.dataWriterParquet(result, dataPath, methodName)
+        println(s"Successfully wrote DataFrame from $methodName to $dataPath/$methodName")
+      } match {
+        case Success(_) => // Do nothing, successfully wrote the DataFrame
+        case Failure(exception) =>
+          println(s"Failed to write DataFrame from method $methodName: ${exception.getMessage}")
+          exception.printStackTrace()
+      }
     }
   }
-
 }

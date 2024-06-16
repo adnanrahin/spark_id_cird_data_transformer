@@ -1,4 +1,4 @@
-package org.data.transformer.dataextractor
+package org.data.transformer.extractor
 
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.functions._

@@ -1,9 +1,9 @@
 package org.data.transformer
 
 import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.data.transformer.dataloader.IpCidrCustomDomainUserDataLoader
+import org.data.transformer.domain_loader.IpCidrCustomDomainUserDataLoader
 
-object IpCidrPIIDataExtractor {
+object SparkIpCidrPIIDataExtractor {
 
   def main(args: Array[String]): Unit = {
 

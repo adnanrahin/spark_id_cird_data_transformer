@@ -1,4 +1,4 @@
-package org.data.transformer.data_writer
+package org.data.transformer.writer
 
 import org.apache.spark.sql.DataFrame
 

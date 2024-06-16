@@ -5,10 +5,6 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.storage.StorageLevel
 import org.data.transformer.writer.DataFileWriterLocal
-import scala.reflect.runtime.universe._
-import scala.reflect.runtime.{currentMirror => cm}
-import scala.util.{Try, Success, Failure}
-
 
 class DataExtractor(personDomainDf: DataFrame) {
 
@@ -90,23 +86,35 @@ class DataExtractor(personDomainDf: DataFrame) {
   }
 
   def generateAllExtractsAndStore(dataPath: String): Unit = {
-    val instanceMirror = cm.reflect(this)
-    val methods = typeOf[DataExtractor].decls.collect {
-      case m: MethodSymbol if m.returnType =:= typeOf[DataFrame] && m.isPublic => m
-    }
+    val maleDf = findAllMalePerson()
+    DataFileWriterLocal.dataWriterParquet(maleDf, dataPath, "find_all_male_person")
 
-    methods.foreach { method =>
-      val methodName = method.name.toString
-      Try {
-        val result = instanceMirror.reflectMethod(method).apply().asInstanceOf[DataFrame]
-        DataFileWriterLocal.dataWriterParquet(result, dataPath, methodName)
-        println(s"Successfully wrote DataFrame from $methodName to $dataPath/$methodName")
-      } match {
-        case Success(_) => // Do nothing, successfully wrote the DataFrame
-        case Failure(exception) =>
-          println(s"Failed to write DataFrame from method $methodName: ${exception.getMessage}")
-          exception.printStackTrace()
-      }
-    }
+    val totalIidDf = countTotalIidEachState()
+    DataFileWriterLocal.dataWriterParquet(totalIidDf, dataPath, "count_total_iid_each_state")
+
+    val topCitiesDf = topCitiesByPopulation()
+    DataFileWriterLocal.dataWriterParquet(topCitiesDf, dataPath, "top_cities_by_population")
+
+    val invalidEmailsDf = findPersonsWithInvalidEmails()
+    DataFileWriterLocal.dataWriterParquet(invalidEmailsDf, dataPath, "find_persons_with_invalid_emails")
+
+    val stateWiseGenderCountDf = stateWiseMaleFemaleCount()
+    DataFileWriterLocal.dataWriterParquet(stateWiseGenderCountDf, dataPath, "statewise_male_female_count")
+
+    val topStatesDf = topStatesByPersons()
+    DataFileWriterLocal.dataWriterParquet(topStatesDf, dataPath, "top_states_by_persons")
+
+    val uniqueIpsDf = countUniqueIpsPerState()
+    DataFileWriterLocal.dataWriterParquet(uniqueIpsDf, dataPath, "count_unique_ips_per_state")
+
+    val validEmailsDf = findPersonsWithValidEmails()
+    DataFileWriterLocal.dataWriterParquet(validEmailsDf, dataPath, "find_persons_with_valid_emails")
+
+    val cityWiseGenderDistDf = cityWiseGenderDistribution()
+    DataFileWriterLocal.dataWriterParquet(cityWiseGenderDistDf, dataPath, "citywise_gender_distribution")
+
+    val peopleUnderSameIp4Df = findPeopleUnderSamePublicIp4()
+    DataFileWriterLocal.dataWriterParquet(peopleUnderSameIp4Df, dataPath, "find_people_under_same_public_ip4")
   }
+
 }

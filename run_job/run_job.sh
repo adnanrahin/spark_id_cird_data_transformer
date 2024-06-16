@@ -10,7 +10,7 @@ $SPARK_HOME/bin/spark-submit \
     --master spark://dev-server01:7077 \
     --deploy-mode client \
     --class org.data.transformer.IpCidrPIIDataExtractor \
-    --name IpCidrPIIDataExtractor \
+    --name SparkIpCidrPIIDataExtractor \
     --driver-memory 2G \
     --driver-cores 2 \
     --executor-memory 2G \

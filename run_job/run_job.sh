@@ -11,9 +11,9 @@ $SPARK_HOME/bin/spark-submit \
     --deploy-mode cluster \
     --class org.data.transformer.IpCidrPIIDataExtractor \
     --name IpCidrPIIDataExtractor \
-    --driver-memory 4G \
-    --driver-cores 4 \
-    --executor-memory 8G \
-    --executor-cores 2 \
+    --driver-memory 2G \
+    --driver-cores 2 \
+    --executor-memory 2G \
+    --executor-cores 1 \
     --total-executor-cores 12 \
     $APP_JAR $INPUT_PATH $OUTPUT_PATH $PARTITIONS

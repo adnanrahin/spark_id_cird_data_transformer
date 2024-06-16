@@ -4,6 +4,11 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.storage.StorageLevel
+import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.data.transformer.writer.DataFileWriterLocal
+
+import scala.reflect.runtime.universe._
+import scala.reflect.runtime.{currentMirror => cm}
 
 class DataExtractor(personDomainDf: DataFrame) {
 
@@ -66,7 +71,7 @@ class DataExtractor(personDomainDf: DataFrame) {
     validEmailDf
   }
 
-  def citywiseGenderDistribution(): DataFrame = {
+  def cityWiseGenderDistribution(): DataFrame = {
     val genderCountDf = personDomainDf.groupBy("city", "gender").count().alias("gender_count")
     val pivotDf = genderCountDf.groupBy("city").pivot("gender").sum("count")
     pivotDf.persist(StorageLevel.MEMORY_AND_DISK)
@@ -82,20 +87,18 @@ class DataExtractor(personDomainDf: DataFrame) {
     peopleUnderSameIp4Df
   }
 
-  def runExtraction(extracts: Seq[String]): Map[String, DataFrame] = {
-    val results = extracts.map {
-      case "findAllMalePerson" => "findAllMalePerson" -> findAllMalePerson()
-      case "countTotalIidEachState" => "countTotalIidEachState" -> countTotalIidEachState()
-      case "topCitiesByPopulation" => "topCitiesByPopulation" -> topCitiesByPopulation()
-      case "findPersonsWithInvalidEmails" => "findPersonsWithInvalidEmails" -> findPersonsWithInvalidEmails()
-      case "statewiseMaleFemaleCount" => "statewiseMaleFemaleCount" -> statewiseMaleFemaleCount()
-      case "topStatesByPersons" => "topStatesByPersons" -> topStatesByPersons()
-      case "countUniqueIpsPerState" => "countUniqueIpsPerState" -> countUniqueIpsPerState()
-      case "findPersonsWithValidEmails" => "findPersonsWithValidEmails" -> findPersonsWithValidEmails()
-      case "citywiseGenderDistribution" => "citywiseGenderDistribution" -> citywiseGenderDistribution()
-      case "findPeopleUnderSamePublicIp4" => "findPeopleUnderSamePublicIp4" -> findPeopleUnderSamePublicIp4()
-      case unknown => throw new IllegalArgumentException(s"Unknown extraction: $unknown")
-    }.toMap
-    results
+
+  def generateAllExtractsAndStore(dataPath: String): Unit = {
+    val instanceMirror = cm.reflect(this)
+    val methods = typeOf[DataExtractor].decls.collect {
+      case m: MethodSymbol if m.returnType =:= typeOf[DataFrame] && m.isPublic => m
+    }
+
+    methods.foreach { method =>
+      val result = instanceMirror.reflectMethod(method).apply().asInstanceOf[DataFrame]
+      val directoryName = method.name.toString
+      DataFileWriterLocal.dataWriterParquet(result, dataPath, directoryName)
+    }
   }
+
 }

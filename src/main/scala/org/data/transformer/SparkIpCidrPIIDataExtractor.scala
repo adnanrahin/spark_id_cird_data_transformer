@@ -2,6 +2,7 @@ package org.data.transformer
 
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.data.transformer.domain_loader.IpCidrCustomDomainUserDataLoader
+import org.data.transformer.extractor.DataExtractor
 
 object SparkIpCidrPIIDataExtractor {
 
@@ -15,16 +16,17 @@ object SparkIpCidrPIIDataExtractor {
 
     val sc = spark.sparkContext
 
-    val dataSourcePath = args(0)
-    val dataPath = args(1)
+    val  = args(0)
+    val extractOutputDir = args(1)
 
 
     val personDomainDataLoader: IpCidrCustomDomainUserDataLoader =
-      new IpCidrCustomDomainUserDataLoader(dataSourcePath, spark)
+      new IpCidrCustomDomainUserDataLoader(inputSourceDataDir, spark)
 
-    val df = personDomainDataLoader.loadDf()
+    val personDomainDf = personDomainDataLoader.loadDf()
 
-    df.show()
+    val extractor = new DataExtractor(personDomainDf)
+    extractor.generateAllExtractsAndStore(extractOutputDir)
 
   }
 }

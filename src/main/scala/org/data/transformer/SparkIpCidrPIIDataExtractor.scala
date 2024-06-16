@@ -16,7 +16,7 @@ object SparkIpCidrPIIDataExtractor {
 
     val sc = spark.sparkContext
 
-    val  = args(0)
+    val inputSourceDataDir = args(0)
     val extractOutputDir = args(1)
 
 

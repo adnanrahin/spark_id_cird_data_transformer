@@ -11,7 +11,7 @@ object SparkIpCidrPIIDataExtractor {
     val spark = SparkSession
       .builder()
       .appName("SparkIpCidrPIIDataExtractor")
-      .master("local[*]") // Comment out if running in local standalone cluster
+      //.master("local[*]") // Comment out if running in local standalone cluster
       .getOrCreate()
 
     val sc = spark.sparkContext

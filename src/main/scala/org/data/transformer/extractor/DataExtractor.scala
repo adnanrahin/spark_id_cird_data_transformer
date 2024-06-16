@@ -35,12 +35,13 @@ class DataExtractor(personDomainDf: DataFrame) {
 
   def findPersonsWithInvalidEmails(): DataFrame = {
     val invalidEmailDf = personDomainDf.filter(
-      !col("email").rlike("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"))
+      !col("email").rlike("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")
+    )
     invalidEmailDf.persist(StorageLevel.MEMORY_AND_DISK)
     invalidEmailDf
   }
 
-  def statewiseMaleFemaleCount(): DataFrame = {
+  def stateWiseMaleFemaleCount(): DataFrame = {
     val maleFemaleCountDf = personDomainDf.groupBy("state", "gender").count().alias("count")
     val pivotDf = maleFemaleCountDf.groupBy("state").pivot("gender").sum("count")
     pivotDf.persist(StorageLevel.MEMORY_AND_DISK)
@@ -79,14 +80,14 @@ class DataExtractor(personDomainDf: DataFrame) {
   }
 
   def findPeopleUnderSamePublicIp4(): DataFrame = {
+    // Group by ipV4 column and count distinct guIds (assuming guId is a unique identifier)
     val peopleUnderSameIp4Df = personDomainDf.groupBy("ipV4").agg(
       countDistinct(col("guId")).alias("unique_persons_count")
-    ).filter(col("unique_persons_count") > 1)
+    ).filter(col("unique_persons_count") > 1) // Filter to get only those with more than one person
 
     peopleUnderSameIp4Df.persist(StorageLevel.MEMORY_AND_DISK)
     peopleUnderSameIp4Df
   }
-
 
   def generateAllExtractsAndStore(dataPath: String): Unit = {
     val instanceMirror = cm.reflect(this)
